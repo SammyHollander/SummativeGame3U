@@ -22,17 +22,19 @@ public class Test extends JComponent {
     //new class for the attributes that will change depending on the level of monster
 
     public class monsterAtrib {
-        //declare vairables
 
+        //declare vairables
         public Rectangle maPos;
         public int maSpeedX;
         public int maSpeedY;
-        //initalizer
+        public Color maColor;
 
-        public monsterAtrib(int x0, int y0, int w, int h, int speedX, int speedY) {
+        //initalizer
+        public monsterAtrib(int x0, int y0, int w, int h, int speedX, int speedY, int[] color) {
             maPos = new Rectangle(x0, y0, w, h);
             maSpeedX = speedX;
             maSpeedY = speedY;
+            maColor = new Color(color[0], color[1], color[2]);
         }
     }
     // Height and Width of our game
@@ -68,6 +70,8 @@ public class Test extends JComponent {
     boolean upPressed;
     boolean leftPressed;
     boolean rightPressed;
+    //boolean to see if more monsters need to spawn-set false to start
+    boolean spawn = false;
     //end game boolean
     boolean done;
     //death by monsters
@@ -81,6 +85,14 @@ public class Test extends JComponent {
     //XY arrow direction-temp setting to zero
     int Xdir = 0;
     int Ydir = 0;
+    //arrow speedX
+    int asX = 4;
+    //arrow speedY
+    int asY = 4;
+    //hero speedX
+    int hsX = 2;
+    //hero speedY
+    int hsY = 2;
     //mouse pressed
     boolean lclick;
     //hero health
@@ -88,7 +100,7 @@ public class Test extends JComponent {
     //new counter
     int count = 0;
     //game font
-    Font text = new Font("Trade Winds", Font.BOLD, 50);
+    Font text = new Font("Areal", Font.BOLD, 50);
     //text color
     Color textColor = new Color(42, 92, 17);
 
@@ -96,14 +108,14 @@ public class Test extends JComponent {
     // Constructor to create the Frame and place the panel in
     // You will learn more about this in Grade 12 :)
     public Test() {
-        //initialize the monster atributes
-        for (int i = 0; i < 10; i++) {
-            Test.monsterAtrib mon = new Test.monsterAtrib(WIDTH / 2, HEIGHT / 2, 15, 15, 3 + i, 3 + i);
-            //adding new monster to the list
-            mobs.add(mon);
-        }
-
-
+//        //initialize the monster atributes (start with two on screen when game loads)
+//        for (int i = 0; i < 2; i++) {
+//            Test.monsterAtrib mon = new Test.monsterAtrib(WIDTH / 2, HEIGHT / 2, 15, 15, 3 + i, 3 + i);
+//            //adding new monster to the list
+//            mobs.add(mon);
+//        }
+        //set spawn to true to spawn the first wave
+        spawn = true;
         // creates a windows to show my game
         JFrame frame = new JFrame(title);
 
@@ -190,15 +202,13 @@ public class Test extends JComponent {
             done = true;
         }
 
-        //set monster color to pink (because I can)
-        g.setColor(Color.pink);
         //draw the monsters
         for (int i = 0; i < mobs.size(); i++) {
+            //set the monster Color
+            g.setColor(mobs.get(i).maColor);
             g.fillRect(mobs.get(i).maPos.x, mobs.get(i).maPos.y, mobs.get(i).maPos.width, mobs.get(i).maPos.height);
+
         }
-
-
-
 
         //if the hero falls down the hole (game over)
         if (falldeath == true) {
@@ -264,14 +274,30 @@ public class Test extends JComponent {
 
             // all your game rules and move is done in here
             // GAME LOGIC STARTS HERE 
-
             //check for collisions
             collisions();
 
+            //leveling up character(increasing speed)-max of 10 level ups
+            for (int i = 0; i < 10; i++) {
+                //every thrid monster killed = level up
+                if (Score == 3 * i && spawn == true) {
+                    //increase the speed of arrow
+                    asX = asX + 1;
+                    asY = asY + 1;
+                    //increase the speed of player
+                    hsX = hsX + 1;
+                    hsY = hsY + 1;
+                }
+            }
+
+            //check if new monsters should spawn
+            if (spawn == true) {
+                //call spawning method to add monsters to the Arraylist
+                spawning();
+            }
 
             //if they fall down the pit, end the game
             if (falldeath == true) {
-                hearts = 0;
                 done = true;
             }
             //death death boolean
@@ -306,40 +332,39 @@ public class Test extends JComponent {
                 mobs.get(i).maPos.y += mobs.get(i).maSpeedY;
             }
 
-
             //moveing the hero forward
             if (wPressed) {
-                hero.y = hero.y - 2;
+                hero.y = hero.y - hsY;
             }
             //moveing the hero down
             if (sPressed) {
-                hero.y = hero.y + 2;
+                hero.y = hero.y + hsY;
             }
             //moveing the hero left
             if (aPressed) {
-                hero.x = hero.x - 2;
+                hero.x = hero.x - hsX;
             }
             //moveing the hero right
             if (dPressed) {
-                hero.x = hero.x + 2;
+                hero.x = hero.x + hsX;
             }
 
             //update arrow x and y
             //if upwards shot
             if (upPressed) {
-                arrow.y = arrow.y - 4;
+                arrow.y = arrow.y - asY;
             }
             //if downwards shot
             if (downPressed) {
-                arrow.y = arrow.y + 4;
+                arrow.y = arrow.y + asY;
             }
             //left shot
             if (leftPressed) {
-                arrow.x = arrow.x - 4;
+                arrow.x = arrow.x - asX;
             }
             //right shot
             if (rightPressed) {
-                arrow.x = arrow.x + 4;
+                arrow.x = arrow.x + asX;
             }
             //if none of the arrow keys are pressed, reset arrow x and y
             if ((upPressed == false && downPressed == false && leftPressed == false && rightPressed == false)) {
@@ -364,7 +389,6 @@ public class Test extends JComponent {
                 }
             } catch (Exception e) {
             };
-
 
         }
     }
@@ -436,7 +460,6 @@ public class Test extends JComponent {
                 //true for only a second
                 leftPressed = true;
 
-
             }
             if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
                 //true for only a seccond
@@ -489,19 +512,51 @@ public class Test extends JComponent {
         // starts the game loop
         game.run();
     }
-    //collision method
 
+    //spawning method
+    public void spawning() {
+        //get a random number for the number of monsters to spawn
+        int spawnNum = (int) (Math.random() * (3 - 1 + 1)) + 1;
+        //add the monsters to the list of monsterss, equal to the random number selected
+        for (int i = 0; i < spawnNum; i++) {
+            //randomize the speed
+            int speed = (int) (Math.random() * (8 - 1 + 1)) + 1;
+            //randomize the size (min of 15, max of 25)
+            int size = (int) (Math.random() * (25 - 15 + 15)) + 15;
+            //generate a random color by puting 3 random rgb values in an int array
+            //new int array for color
+            int[] color = new int[3];
+            //red value
+            color[0] = (int) (Math.random() * (255 - 1 + 1)) + 1;
+            //green value
+            color[1] = (int) (Math.random() * (255 - 1 + 1)) + 1;
+            //blue value
+            color[2] = (int) (Math.random() * (255 - 1 + 1)) + 1;
+
+            Test.monsterAtrib mon = new Test.monsterAtrib(WIDTH / 2, HEIGHT / 2, size, size, speed, speed, color);
+            //adding new monster to the list
+            mobs.add(mon);
+
+        }
+        //set spawn to false again
+        spawn = false;
+    }
+
+    //collision method
     public void collisions() {
         //when the hero hits a monster
         for (int i = 0; i < mobs.size(); i++) {
             if (hero.intersects(mobs.get(i).maPos)) {
                 //subract a life
                 hearts = hearts - 1;
-                //reset the monster XY
+                //reset monster
                 mobs.get(i).maPos.x = WIDTH / 2;
                 mobs.get(i).maPos.y = HEIGHT / 2;
                 //adds one to score
                 Score += 1;
+                //spawn more monsters
+                spawn = true;
+
             }
         }
         //when the hero falls in the hole
@@ -523,9 +578,12 @@ public class Test extends JComponent {
                 arrow.y = hero.y;
                 //add one to score
                 Score += 1;
-                //damage/kill the monster
+                //reset position
                 mobs.get(i).maPos.x = WIDTH / 2;
                 mobs.get(i).maPos.y = HEIGHT / 2;
+                //spawn more monsters
+                spawn = true;
+
             }
         }
 
