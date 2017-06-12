@@ -12,7 +12,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -103,17 +106,14 @@ public class Test extends JComponent {
     Font text = new Font("Areal", Font.BOLD, 50);
     //text color
     Color textColor = new Color(42, 92, 17);
+    //images
+    //hearts
+    BufferedImage heart;
 
     // GAME VARIABLES END HERE   
     // Constructor to create the Frame and place the panel in
     // You will learn more about this in Grade 12 :)
     public Test() {
-//        //initialize the monster atributes (start with two on screen when game loads)
-//        for (int i = 0; i < 2; i++) {
-//            Test.monsterAtrib mon = new Test.monsterAtrib(WIDTH / 2, HEIGHT / 2, 15, 15, 3 + i, 3 + i);
-//            //adding new monster to the list
-//            mobs.add(mon);
-//        }
         //set spawn to true to spawn the first wave
         spawn = true;
         // creates a windows to show my game
@@ -176,19 +176,21 @@ public class Test extends JComponent {
 
         //drawing the healthbar
         if (hearts == 3) {
-            //set color to green
-            g.setColor(Color.green);
-            g.fillRect(hero.x - 5, hero.y + 25, 30, 10);
+            //draw three hearts
+            g.drawImage(heart, hero.x-10, hero.y+20,15,15, null);
+            g.drawImage(heart, hero.x+5, hero.y+20,15,15, null);
+            g.drawImage(heart, hero.x+20, hero.y+20,15,15, null);
+
         }
         if (hearts == 2) {
-            //set color to orange
-            g.setColor(Color.orange);
-            g.fillRect(hero.x - 5, hero.y + 25, 20, 10);
+            //draw two hearts
+            g.drawImage(heart, hero.x-10, hero.y+20,15,15, null);
+            g.drawImage(heart, hero.x+5, hero.y+20,15,15, null);
+            
         }
         if (hearts == 1) {
-            //set color to red
-            g.setColor(Color.red);
-            g.fillRect(hero.x - 5, hero.y + 25, 10, 10);
+            //draw one heart
+            g.drawImage(heart, hero.x-10, hero.y+20,15,15, null);
         }
         //if they die from monsters
         if (death == true) {
@@ -253,6 +255,8 @@ public class Test extends JComponent {
 
     public void preSetup() {
         // Any of your pre setup before the loop starts should go here
+        //load images
+        heart = loadImage("Images/heart.png");
     }
 
     // The main game loop
@@ -511,6 +515,23 @@ public class Test extends JComponent {
         Test game = new Test();
         // starts the game loop
         game.run();
+    }
+    // A method used to load in an image
+    // The filname is used to pass in the EXACT full name of the image from the src folder
+    // i.e.  images/picture.png
+    public BufferedImage loadImage(String filename) {
+        
+        BufferedImage img = null;
+
+        try {
+            // use ImageIO to load in an Image
+            // ClassLoader is used to go into a folder in the directory and grab the file
+            img = ImageIO.read(ClassLoader.getSystemResourceAsStream(filename));
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+        }
+
+        return img;
     }
 
     //spawning method
