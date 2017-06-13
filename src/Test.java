@@ -52,11 +52,25 @@ public class Test extends JComponent {
     long desiredFPS = 60;
     long desiredTime = (1000) / desiredFPS;
     // YOUR GAME VARIABLES WOULD GO HERE
+    //mouse position
+    //mouseX
+    int mouseX = MouseInfo.getPointerInfo().getLocation().x;
+    //mouseY
+    int mouseY = MouseInfo.getPointerInfo().getLocation().y;
     //walls of the dungon
     Rectangle leftWall = new Rectangle(0, 0, 10, HEIGHT);
     Rectangle rightWall = new Rectangle(WIDTH - 10, 0, 10, HEIGHT);
     Rectangle topWall = new Rectangle(0, 0, WIDTH, 10);
     Rectangle bottomWall = new Rectangle(0, HEIGHT - 10, WIDTH, 10);
+    //main menu buttons
+    Rectangle startButton= new Rectangle(250, 450, 70, 20);
+    Rectangle quitButton = new Rectangle(450, 450, 70, 20);
+    Rectangle infoButton = new Rectangle(350, 450, 70, 20);
+    Rectangle mainMenu = new Rectangle(WIDTH / 2 - 50, HEIGHT - 50, 100, 20);
+    Rectangle leftButton = new Rectangle(WIDTH / 2 - 100, HEIGHT - 100, 50, 20);
+    Rectangle rightButton= new Rectangle(WIDTH / 2 + 50, HEIGHT - 100, 50, 20);
+    //rectangle for mouse position
+    Rectangle rectMouse = new Rectangle(mouseX,mouseY,1,1);
     //hole the mosters come from
     Rectangle hole = new Rectangle(WIDTH / 2 - 50, HEIGHT / 2 - 50, 100, 100);
     //new list for monsters
@@ -140,12 +154,7 @@ public class Test extends JComponent {
     boolean mouseOverLeft;
     boolean mouseOverRight;
     boolean mouseOverMain;
-    //mouse position
-    //mouseX
-    int mouseX = MouseInfo.getPointerInfo().getLocation().x;
-    //mouseY
-    int mouseY = MouseInfo.getPointerInfo().getLocation().y;
-    //left click
+    
 
     // GAME VARIABLES END HERE   
     // Constructor to create the Frame and place the panel in
@@ -209,7 +218,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw start button
-            g.fillRect(250, 450, 70, 20);
+            g.fillRect(startButton.x,startButton.y,startButton.width,startButton.height);
             if (mouseOverInfo == true) {
                 //change button color
                 g.setColor(Color.GREEN);
@@ -218,8 +227,9 @@ public class Test extends JComponent {
                 //set color to white
                 g.setColor(Color.white);
             }
+            //draw the info button
+            g.fillRect(infoButton.x,infoButton.y,infoButton.width,infoButton.height);
             //game quit button
-            g.fillRect(350, 450, 70, 20);
             if (mouseOverQuit == true) {
                 //change button color
                 g.setColor(Color.green);
@@ -228,8 +238,8 @@ public class Test extends JComponent {
                 //set color to white
                 g.setColor(Color.white);
             }
-            //info button
-            g.fillRect(450, 450, 70, 20);
+            //draw the quit button
+            g.fillRect(quitButton.x, infoButton.y,infoButton.width,infoButton.height);
 
             //set text color
             g.setColor(textColor);
@@ -259,7 +269,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw left button
-            g.fillRect(WIDTH / 2 - 100, HEIGHT - 100, 50, 20);
+            g.fillRect(leftButton.x,leftButton.y,leftButton.width,leftButton.height);
             //right button
             //when it is moused over it turns green
             if (mouseOverRight == true) {
@@ -271,7 +281,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw right button
-            g.fillRect(WIDTH / 2 + 50, HEIGHT - 100, 50, 20);
+            g.fillRect(rightButton.x,rightButton.y,rightButton.width,rightButton.height);
             //main menu button
             //when it is moused over it turns green
             if (mouseOverMain == true) {
@@ -283,7 +293,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw main menu button
-            g.fillRect(WIDTH / 2 - 50, HEIGHT - 50, 100, 20);
+            g.fillRect(mainMenu.x,mainMenu.y,mainMenu.width,mainMenu.height);
             //button text
             //set text color
             g.setColor(textColor);
@@ -522,12 +532,12 @@ public class Test extends JComponent {
             //get the mouse coordinates
             mouseX = MouseInfo.getPointerInfo().getLocation().x;
             mouseY = MouseInfo.getPointerInfo().getLocation().y;
+            rectMouse = new Rectangle(mouseX,mouseY-20,1,1);
             //if the game is not started yet
             if (start == false) {
                 //when the mouse hovers over the buttons make the button change color
-
                 //if the mouse is over the start button
-                if (mouseX > 250 && mouseX < 320 && mouseY > 470 && mouseY < 490) {
+                if (rectMouse.intersects(startButton)) {
                     //set the mouse over start boolean to true to make the button color change
                     mouseOverStart = true;
                     //if they push start
@@ -537,12 +547,12 @@ public class Test extends JComponent {
                     }
                 }
                 //if the mouse is not over start
-                if (!(mouseX > 250 && mouseX < 320 && mouseY > 470 && mouseY < 490)) {
+                if (!(rectMouse.intersects(startButton))) {
                     //set the mouse over start boolean to false when not over it
                     mouseOverStart = false;
                 }
                 //if the mouse is over the info button
-                if (mouseX > 350 && mouseX < 420 && mouseY > 470 && mouseY < 490) {
+                if (rectMouse.intersects(infoButton)) {
                     //set the mouse over info boolean to true to make the button color change
                     mouseOverInfo = true;
                     //if they push info
@@ -552,12 +562,12 @@ public class Test extends JComponent {
                     }
                 }
                 //if the mouse is not over info
-                if (!(mouseX > 350 && mouseX < 420 && mouseY > 470 && mouseY < 490)) {
+                if (!(rectMouse.intersects(infoButton))) {
                     //set the mouse over info boolean to false when not over it
                     mouseOverInfo = false;
                 }
                 //if the mouse is over the quit button
-                if (mouseX > 450 && mouseX < 520 && mouseY > 470 && mouseY < 490) {
+                if (rectMouse.intersects(quitButton)) {
                     //set the mouse over quit boolean to true to make the button color change
                     mouseOverQuit = true;
                     //if they hit quit
@@ -565,7 +575,7 @@ public class Test extends JComponent {
                     }
                 }
                 //if the mouse is not over quit
-                if (!(mouseX > 450 && mouseX < 520 && mouseY > 470 && mouseY < 490)) {
+                if (!(rectMouse.intersects(quitButton))) {
                     //set the mouse over quit boolean to false when not over it
                     mouseOverQuit = false;
                 }
@@ -576,7 +586,7 @@ public class Test extends JComponent {
             if (info == true) {
 
                 //if the mouse is over the left button
-                if (mouseX > 300 && mouseX < 350 && mouseY > 520 && mouseY < 540) {
+                if (rectMouse.intersects(leftButton)) {
                     //set the mouse over left boolean to true to make the button color change
                     mouseOverLeft = true;
                     //if they push left
@@ -592,12 +602,12 @@ public class Test extends JComponent {
                     }
                 }
                 //if the mouse is not over left
-                if (!(mouseX > 300 && mouseX < 350 && mouseY > 520 && mouseY < 540)) {
+                if (!(rectMouse.intersects(leftButton))) {
                     //set the mouse over left boolean to false when not over it
                     mouseOverLeft = false;
                 }
                 //if the mouse is over the right button
-                if (mouseX > 450 && mouseX < 500 && mouseY > 520 && mouseY < 540) {
+                if (rectMouse.intersects(rightButton)) {
                     //set the mouse over right boolean to true to make the button color change
                     mouseOverRight = true;
                     //if they push right
@@ -613,12 +623,12 @@ public class Test extends JComponent {
                     }
                 }
                 //if the mouse is not over right
-                if (!(mouseX > 450 && mouseX < 500 && mouseY > 520 && mouseY < 540)) {
+                if (!(rectMouse.intersects(rightButton))) {
                     //set the mouse over right boolean to false when not over it
                     mouseOverRight = false;
                 }
                 //if the mouse is over the main menu button
-                if (mouseX > 350 && mouseX < 450 && mouseY > 570 && mouseY < 590) {
+                if (rectMouse.intersects(mainMenu)) {
                     //set the mouse over main boolean to true to make the button color change
                     mouseOverMain = true;
                     //if they hit main menu
@@ -628,7 +638,7 @@ public class Test extends JComponent {
                     }
                 }
                 //if the mouse is not over main menu
-                if (!(mouseX > 350 && mouseX < 450 && mouseY > 570 && mouseY < 590)) {
+                if (!(rectMouse.intersects(mainMenu))) {
                     //set the mouse over main boolean to false when not over it
                     mouseOverMain = false;
                 }
