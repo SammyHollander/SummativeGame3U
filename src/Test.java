@@ -1,4 +1,5 @@
 
+import jaco.mp3.player.MP3Player;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import javax.swing.JComponent;
@@ -63,14 +64,17 @@ public class Test extends JComponent {
     Rectangle topWall = new Rectangle(0, 0, WIDTH, 10);
     Rectangle bottomWall = new Rectangle(0, HEIGHT - 10, WIDTH, 10);
     //main menu buttons
-    Rectangle startButton= new Rectangle(250, 450, 70, 20);
+    Rectangle startButton = new Rectangle(250, 450, 70, 20);
     Rectangle quitButton = new Rectangle(450, 450, 70, 20);
     Rectangle infoButton = new Rectangle(350, 450, 70, 20);
     Rectangle mainMenu = new Rectangle(WIDTH / 2 - 50, HEIGHT - 50, 100, 20);
     Rectangle leftButton = new Rectangle(WIDTH / 2 - 100, HEIGHT - 100, 50, 20);
-    Rectangle rightButton= new Rectangle(WIDTH / 2 + 50, HEIGHT - 100, 50, 20);
+    Rectangle rightButton = new Rectangle(WIDTH / 2 + 50, HEIGHT - 100, 50, 20);
+    //death screen buttons
+    Rectangle mainMenu2 = new Rectangle(600, HEIGHT / 2, 100, 20);
+    Rectangle quit2 = new Rectangle(600, HEIGHT / 2 + 50, 100, 20);
     //rectangle for mouse position
-    Rectangle rectMouse = new Rectangle(mouseX,mouseY,1,1);
+    Rectangle rectMouse = new Rectangle(mouseX, mouseY, 1, 1);
     //hole the mosters come from
     Rectangle hole = new Rectangle(WIDTH / 2 - 50, HEIGHT / 2 - 50, 100, 100);
     //new list for monsters
@@ -91,14 +95,17 @@ public class Test extends JComponent {
     boolean rightPressed;
     //boolean to see if more monsters need to spawn-set false to start
     boolean spawn = false;
+    //boolean for first spawn to see if its happened yet when game reset-set to true furst becuase it hasnt happened yet
+    boolean firstSpawn = true;
     //end game boolean
     boolean done;
     //death by monsters
     boolean death;
     //death by falling boolean
     boolean falldeath;
-    //boolean for starting the game-set to false
-    boolean start = false;
+    //int for if the game should start or not (because I need three options)
+    //set to zero to start
+    int start = 0;
     //boolean for information screen-set to false
     boolean info = false;
     //score system for how many monsters you kill
@@ -147,6 +154,8 @@ public class Test extends JComponent {
     BufferedImage ruleNum4;
     BufferedImage ruleNum5;
     BufferedImage ruleNum6;
+    //game over image
+    BufferedImage gameOver;
     //booleans for if the mouse is over buttons on the title screen
     boolean mouseOverStart;
     boolean mouseOverInfo;
@@ -154,14 +163,15 @@ public class Test extends JComponent {
     boolean mouseOverLeft;
     boolean mouseOverRight;
     boolean mouseOverMain;
-    
+    //booleans for it the mouse is over the buttons on the death screen
+    boolean mouseOverMain2;
+    boolean mouseOverquit2;
+    MP3Player music = new MP3Player(ClassLoader.getSystemResource("Sound/backgroundMusic.mp3"));
 
     // GAME VARIABLES END HERE   
     // Constructor to create the Frame and place the panel in
     // You will learn more about this in Grade 12 :)
     public Test() {
-        //set spawn to true to spawn the first wave
-        spawn = true;
         // creates a windows to show my game
         JFrame frame = new JFrame(title);
 
@@ -184,6 +194,9 @@ public class Test extends JComponent {
         this.addMouseMotionListener(m);
         this.addMouseWheelListener(m);
         this.addMouseListener(m);
+
+        music.setRepeat(true);
+        music.play();
     }
 
     // drawing of the game happens in here
@@ -191,8 +204,49 @@ public class Test extends JComponent {
     // NOTE: This is already double buffered!(helps with framerate/speed)
     @Override
     public void paintComponent(Graphics g) {
+        //if they died(from falling or from lack of life)
+        if (death == true || falldeath == true) {
+            //clear the screen
+            g.clearRect(0, 0, WIDTH, HEIGHT);
+            //balck backroud
+            g.setColor(Color.black);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+            //draw the game over screen
+            g.drawImage(gameOver, 100, 100, 400, 400, null);
+            //draw the main menu button
+            //set color if you're mouseing over it to change
+            if (mouseOverMain2 == true) {
+                //change button color
+                g.setColor(Color.green);
+            }
+            if (mouseOverMain2 == false) {
+                //set color to white
+                g.setColor(Color.white);
+            }
+            //draw main menu button
+            g.fillRect(mainMenu2.x, mainMenu2.y, mainMenu2.width, mainMenu2.height);
+            //draw the quit button
+            if (mouseOverquit2 == true) {
+                //change button color
+                g.setColor(Color.green);
+            }
+            if (mouseOverquit2 == false) {
+                //set color to white
+                g.setColor(Color.white);
+            }
+            //draw main menu button
+            g.fillRect(quit2.x, quit2.y, quit2.width, quit2.height);
+
+            //draw the button text
+            //set font to small text font
+            g.setFont(smallText);
+            //set the Text color to text color
+            g.setColor(textColor);
+            g.drawString("Main Menu", mainMenu2.x + 15, mainMenu2.y + 15);
+            g.drawString("Quit", quit2.x + 35, quit2.y + 15);
+        }
         //before the game starts (title screen)
-        if (start == false) {
+        if (start == 0) {
             //clear the screen
             g.clearRect(0, 0, WIDTH, HEIGHT);
             //balck backroud
@@ -218,7 +272,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw start button
-            g.fillRect(startButton.x,startButton.y,startButton.width,startButton.height);
+            g.fillRect(startButton.x, startButton.y, startButton.width, startButton.height);
             if (mouseOverInfo == true) {
                 //change button color
                 g.setColor(Color.GREEN);
@@ -228,7 +282,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw the info button
-            g.fillRect(infoButton.x,infoButton.y,infoButton.width,infoButton.height);
+            g.fillRect(infoButton.x, infoButton.y, infoButton.width, infoButton.height);
             //game quit button
             if (mouseOverQuit == true) {
                 //change button color
@@ -239,7 +293,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw the quit button
-            g.fillRect(quitButton.x, infoButton.y,infoButton.width,infoButton.height);
+            g.fillRect(quitButton.x, infoButton.y, infoButton.width, infoButton.height);
 
             //set text color
             g.setColor(textColor);
@@ -269,7 +323,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw left button
-            g.fillRect(leftButton.x,leftButton.y,leftButton.width,leftButton.height);
+            g.fillRect(leftButton.x, leftButton.y, leftButton.width, leftButton.height);
             //right button
             //when it is moused over it turns green
             if (mouseOverRight == true) {
@@ -281,7 +335,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw right button
-            g.fillRect(rightButton.x,rightButton.y,rightButton.width,rightButton.height);
+            g.fillRect(rightButton.x, rightButton.y, rightButton.width, rightButton.height);
             //main menu button
             //when it is moused over it turns green
             if (mouseOverMain == true) {
@@ -293,7 +347,7 @@ public class Test extends JComponent {
                 g.setColor(Color.white);
             }
             //draw main menu button
-            g.fillRect(mainMenu.x,mainMenu.y,mainMenu.width,mainMenu.height);
+            g.fillRect(mainMenu.x, mainMenu.y, mainMenu.width, mainMenu.height);
             //button text
             //set text color
             g.setColor(textColor);
@@ -354,7 +408,7 @@ public class Test extends JComponent {
 
         }
         //if they start the game
-        if (start == true) {
+        if (start == 1) {
             // clear the screen
             g.clearRect(0, 0, WIDTH, HEIGHT);
 
@@ -435,17 +489,6 @@ public class Test extends JComponent {
                 //draw one heart
                 g.drawImage(heart, hero.x - 10, hero.y + 30, 15, 15, null);
             }
-            //if they die from monsters
-            if (death == true) {
-                //set text color
-                g.setColor(textColor);
-                //setfont
-                g.setFont(text);
-                //death message
-                g.drawString("And the hero was slain", 30, HEIGHT / 2);
-                //end game
-                done = true;
-            }
 
             //draw the monsters
             for (int i = 0; i < mobs.size(); i++) {
@@ -453,18 +496,6 @@ public class Test extends JComponent {
                 g.setColor(mobs.get(i).maColor);
                 g.fillRect(mobs.get(i).maPos.x, mobs.get(i).maPos.y, mobs.get(i).maPos.width, mobs.get(i).maPos.height);
 
-            }
-
-            //if the hero falls down the hole (game over)
-            if (falldeath == true) {
-                //set font color
-                g.setColor(textColor);
-                //set font
-                g.setFont(text);
-                //game over screen
-                g.drawString("And the hero fell to his death...", 30, HEIGHT / 2);
-                //end game
-                done = true;
             }
 
             //if a key was pressed to fire an magic
@@ -513,6 +544,8 @@ public class Test extends JComponent {
         ruleNum4 = loadImage("Images/ruleNum4.png");
         ruleNum5 = loadImage("Images/ruleNum5.png");
         ruleNum6 = loadImage("Images/ruleNum6.png");
+        //game ocer screen
+        gameOver = loadImage("Images/gameOver.png");
     }
 
     // The main game loop
@@ -529,12 +562,64 @@ public class Test extends JComponent {
         // game will end if you set done = false;
         done = false;
         while (!done) {
+            // determines when we started so we can keep a framerate
+            startTime = System.currentTimeMillis();
             //get the mouse coordinates
-            mouseX = MouseInfo.getPointerInfo().getLocation().x;
-            mouseY = MouseInfo.getPointerInfo().getLocation().y;
-            rectMouse = new Rectangle(mouseX,mouseY-20,1,1);
+            rectMouse.x = mouseX;
+            rectMouse.y = mouseY;
+
+            //if they died(from falling or from lack of life)
+            if (death == true || falldeath == true) {
+                //when the mouse hovers over the buttons make them change color
+                //if the mouse is over the main menu button
+                if (rectMouse.intersects(mainMenu2)) {
+                    //set the boolean to say the mouse is over the button to true
+                    mouseOverMain2 = true;
+                    //if they push the main menu button
+                    if (lclick == true) {
+                        //set start int to 0 to start game
+                        start = 0;
+                        //set health to full
+                        hearts = 3;
+                        //set score to zero to reset
+                        Score = 0;
+                        //reset the hero position
+                        hero.x = 20;
+                        hero.y = 20;
+                        //remove all the monsters from the array list
+                        mobs.clear();
+                        //reset the death and falldeath booleans to restart game
+                        death = false;
+                        falldeath = false;
+                        //set first spawn to true so the first new mobs spawn
+                        firstSpawn = true;
+                    }
+                }
+                //if the mouse is not over the main menu button
+                if (!(rectMouse.intersects(mainMenu2))) {
+                    //set the boolean to say the mouse is over the button to true
+                    mouseOverMain2 = false;
+                }
+                //when the mouse hovers over the quit button make it change color
+                if (rectMouse.intersects(quit2)) {
+                    //set the boolean to say the mouse is over the button to true
+                    mouseOverquit2 = true;
+                    //if they push the quit button
+                    if (lclick == true) {
+                        //end game
+                        System.exit(0);
+                    }
+                }
+                //if the mouse is not over the quit button
+                if (!(rectMouse.intersects(quit2))) {
+                    //keep the button color white 
+                    mouseOverquit2 = false;
+                }
+                // update the drawing (calls paintComponent)
+                repaint();
+            }
             //if the game is not started yet
-            if (start == false) {
+            if (start == 0) {
                 //when the mouse hovers over the buttons make the button change color
                 //if the mouse is over the start button
                 if (rectMouse.intersects(startButton)) {
@@ -542,8 +627,8 @@ public class Test extends JComponent {
                     mouseOverStart = true;
                     //if they push start
                     if (lclick == true) {
-                        //set start boolean to true to start game
-                        start = true;
+                        //set start int to 1 to start game
+                        start = 1;
                     }
                 }
                 //if the mouse is not over start
@@ -572,6 +657,8 @@ public class Test extends JComponent {
                     mouseOverQuit = true;
                     //if they hit quit
                     if (lclick == true) {
+                        //end the game
+                        System.exit(0);
                     }
                 }
                 //if the mouse is not over quit
@@ -646,12 +733,11 @@ public class Test extends JComponent {
                 repaint();
             }
             //if they started the game
-            if (start == true) {
-                // determines when we started so we can keep a framerate
-                startTime = System.currentTimeMillis();
-
-                // all your game rules and move is done in here
-                // GAME LOGIC STARTS HERE 
+            if (start == 1) {
+                //spawn first round if it hasnt spawned anything yet
+                if (firstSpawn == true) {
+                    spawn = true;
+                }
                 //check for collisions
                 collisions();
 
@@ -674,17 +760,16 @@ public class Test extends JComponent {
                     spawning();
                 }
 
-                //if they fall down the pit, end the game
-                if (falldeath == true) {
-                    done = true;
-                }
-                //death death boolean
+                //setting death boolean
                 if (hearts > 0) {
                     death = false;
                 }
                 //if they reach 0 lives
                 if (hearts == 0) {
+                    //set death to true
                     death = true;
+                    //set start to 3
+                    start = 3;
                 }
 
                 //makeing it so the hero can't walk over the walls of the dungeon
@@ -801,6 +886,8 @@ public class Test extends JComponent {
         // if the mouse has moved positions
         @Override
         public void mouseMoved(MouseEvent e) {
+            mouseX = e.getX();
+            mouseY = e.getY();
         }
     }
 
@@ -935,7 +1022,9 @@ public class Test extends JComponent {
             mobs.add(mon);
 
         }
-        //set spawn to false again
+        //make sure first spawn is set to false
+        firstSpawn = false;
+        //set spawn to false
         spawn = false;
     }
 
@@ -960,6 +1049,8 @@ public class Test extends JComponent {
         if (hero.intersects(hole)) {
             //set falldeath boolean to true
             falldeath = true;
+            //set start to 3
+            start = 3;
         }
         //when the magic hits the walls
         if (magic.intersects(topWall) || magic.intersects(bottomWall) || magic.intersects(leftWall) || magic.intersects(rightWall)) {
