@@ -15,8 +15,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
@@ -110,6 +113,10 @@ public class Test extends JComponent {
     boolean info = false;
     //score system for how many monsters you kill
     int Score = 0;
+    //for saveing the high scores
+    int endScore = 0;
+    //boolean to only call the scorekeeper method once per death
+    boolean setScore;
     //rule page number(start at 0)
     int ruleNum = 0;
     //magic direction
@@ -166,6 +173,7 @@ public class Test extends JComponent {
     //booleans for it the mouse is over the buttons on the death screen
     boolean mouseOverMain2;
     boolean mouseOverquit2;
+    //sound
     MP3Player music = new MP3Player(ClassLoader.getSystemResource("Sound/backgroundMusic.mp3"));
 
     // GAME VARIABLES END HERE   
@@ -213,6 +221,13 @@ public class Test extends JComponent {
             g.fillRect(0, 0, WIDTH, HEIGHT);
             //draw the game over screen
             g.drawImage(gameOver, 100, 100, 400, 400, null);
+            //write your score on the game over screen
+            //set the text to large text
+            g.setFont(text);
+            //set the color
+            g.setColor(textColor);
+            //write the score
+            g.drawString("You Killed " + Score + " Monsters", 100, 550);
             //draw the main menu button
             //set color if you're mouseing over it to change
             if (mouseOverMain2 == true) {
@@ -570,6 +585,12 @@ public class Test extends JComponent {
 
             //if they died(from falling or from lack of life)
             if (death == true || falldeath == true) {
+                //save the high score to the thing
+                endScore = Score;
+                //call the scorekeeper method to add to the high score sheet
+                if (setScore == true) {
+                    scoreKeeper(endScore);
+                }
                 //when the mouse hovers over the buttons make them change color
                 //if the mouse is over the main menu button
                 if (rectMouse.intersects(mainMenu2)) {
@@ -577,6 +598,9 @@ public class Test extends JComponent {
                     mouseOverMain2 = true;
                     //if they push the main menu button
                     if (lclick == true) {
+                        //reset everything
+                        //reset highscore
+                        endScore = 0;
                         //set start int to 0 to start game
                         start = 0;
                         //set health to full
@@ -593,6 +617,16 @@ public class Test extends JComponent {
                         falldeath = false;
                         //set first spawn to true so the first new mobs spawn
                         firstSpawn = true;
+                        //reset the speed of the wizzard and magic
+                        //magic speedX
+                        asX = 4;
+                        //magic speedY
+                        asY = 4;
+                        //hero speedX
+                        hsX = 2;
+                        //hero speedY
+                        hsY = 2;
+
                     }
                 }
                 //if the mouse is not over the main menu button
@@ -763,11 +797,14 @@ public class Test extends JComponent {
                 //setting death boolean
                 if (hearts > 0) {
                     death = false;
+
                 }
                 //if they reach 0 lives
                 if (hearts == 0) {
                     //set death to true
                     death = true;
+                    //set setscore to true
+                    setScore = true;
                     //set start to 3
                     start = 3;
                 }
@@ -979,6 +1016,24 @@ public class Test extends JComponent {
         game.run();
     }
 
+    //method for doing scores-adding to high score page (needs the end score)
+    public void scoreKeeper(int endScore) {
+        try {
+            //new filewritter and bufferedwriter to append the scores txt
+            FileWriter writer = new FileWriter("trial.txt");
+            BufferedWriter bufferedWriter = new BufferedWriter(writer);
+            //add the final score for that game to the text doc
+            bufferedWriter.write("boo");
+            bufferedWriter.newLine();
+            bufferedWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //set to false so it does not call this method over and over agian
+        setScore = false;
+    }
+
     // A method used to load in an image
     // The filname is used to pass in the EXACT full name of the image from the src folder
     // i.e.  images/picture.png
@@ -1049,6 +1104,8 @@ public class Test extends JComponent {
         if (hero.intersects(hole)) {
             //set falldeath boolean to true
             falldeath = true;
+            //set setscore to true
+            setScore = true;
             //set start to 3
             start = 3;
         }
