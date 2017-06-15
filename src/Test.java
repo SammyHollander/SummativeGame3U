@@ -15,12 +15,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Scanner;
 import javax.imageio.ImageIO;
 
 /**
@@ -73,15 +77,20 @@ public class Test extends JComponent {
     Rectangle mainMenu = new Rectangle(WIDTH / 2 - 50, HEIGHT - 50, 100, 20);
     Rectangle leftButton = new Rectangle(WIDTH / 2 - 100, HEIGHT - 100, 50, 20);
     Rectangle rightButton = new Rectangle(WIDTH / 2 + 50, HEIGHT - 100, 50, 20);
+    Rectangle scoresButton = new Rectangle(340, 500, 90, 20);
     //death screen buttons
     Rectangle mainMenu2 = new Rectangle(600, HEIGHT / 2, 100, 20);
     Rectangle quit2 = new Rectangle(600, HEIGHT / 2 + 50, 100, 20);
+    //scores screen button
+    Rectangle mainMenu3 = new Rectangle(WIDTH / 2 - 50, HEIGHT - 50, 100, 20);
     //rectangle for mouse position
     Rectangle rectMouse = new Rectangle(mouseX, mouseY, 1, 1);
     //hole the mosters come from
     Rectangle hole = new Rectangle(WIDTH / 2 - 50, HEIGHT / 2 - 50, 100, 100);
     //new list for monsters
     List<Test.monsterAtrib> mobs = new ArrayList<Test.monsterAtrib>();
+    //new array list for the high scores
+    List<Integer> highScores = new ArrayList<Integer>();
     //hero character
     Rectangle hero = new Rectangle(0, 0, 20, 30);
     //rectangle for the magic
@@ -170,11 +179,20 @@ public class Test extends JComponent {
     boolean mouseOverLeft;
     boolean mouseOverRight;
     boolean mouseOverMain;
+    boolean mouseOverScores;
     //booleans for it the mouse is over the buttons on the death screen
     boolean mouseOverMain2;
     boolean mouseOverquit2;
-    //sound
-    MP3Player music = new MP3Player(ClassLoader.getSystemResource("Sound/backgroundMusic.mp3"));
+    //booleans for if the mouse is over buttons on the score screen
+    boolean mouseOverMain3;
+    //score screen boolean (if they are on the score screen or not)
+    boolean scoreScreen;
+    //background music
+    MP3Player music = new MP3Player(ClassLoader.getSystemResource("Sound/Music.mp3"));
+    //firebolt effects
+    MP3Player effects = new MP3Player(ClassLoader.getSystemResource("Sound/firebolt.mp3"));
+    //game over music
+    MP3Player gameOverMusic = new MP3Player(ClassLoader.getSystemResource("Sound/GameOver.mp3"));
 
     // GAME VARIABLES END HERE   
     // Constructor to create the Frame and place the panel in
@@ -203,6 +221,9 @@ public class Test extends JComponent {
         this.addMouseWheelListener(m);
         this.addMouseListener(m);
 
+        //call the scorekeper method to pull up the top 5 score from the txt
+        scoreKeeper(endScore);
+        //play the theme music on infinate loop
         music.setRepeat(true);
         music.play();
     }
@@ -212,6 +233,54 @@ public class Test extends JComponent {
     // NOTE: This is already double buffered!(helps with framerate/speed)
     @Override
     public void paintComponent(Graphics g) {
+        //if they hit the scores button
+        if (scoreScreen == true) {
+            //clear the screen
+            g.clearRect(0, 0, WIDTH, HEIGHT);
+            //balck backroud
+            g.setColor(Color.black);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+
+            //if the mouse is over the main menu button change the color
+            if (mouseOverMain3 == true) {
+                //set color to green
+                g.setColor(Color.green);
+            }
+            //if the mouse is not over the main menu button make the button white
+            if (mouseOverMain3 == false) {
+                //set the color to white
+                g.setColor(Color.white);
+            }
+
+            //draw main menu button
+            g.fillRect(mainMenu3.x, mainMenu3.y, mainMenu3.width, mainMenu3.height);
+            //set the text color to costom color
+            g.setColor(textColor);
+            //set the text font to the small text font
+            g.setFont(smallText);
+            //draw button text
+            g.drawString("Main Menu", WIDTH / 2 - 35, HEIGHT - 35);
+
+            //set the font to the large text
+            g.setFont(text);
+            //title
+            g.drawString("High Scores", 250, 50);
+            //draw in the top five scores,if there are five top scores to draw
+            if (highScores.size() > 6) {
+                //draw the scores
+                for (int i = 0; i < 6; i++) {
+                    g.drawString("" + highScores.get(i), WIDTH / 2, 100 + 50 * (i + 1));
+                }
+            }
+            //if there are not five scores, just draw the number of scores there are
+            if (highScores.size() < 6) {
+                //only draw the number equal to the length of the array list
+                for (int i = 0; i < highScores.size(); i++) {
+                    //draw the score
+                    g.drawString("" + highScores.get(i), WIDTH / 2, 100 + 50 * (i + 1));
+                }
+            }
+        }
         //if they died(from falling or from lack of life)
         if (death == true || falldeath == true) {
             //clear the screen
@@ -277,6 +346,17 @@ public class Test extends JComponent {
             g.drawString("Magic & Monsters", 200, 50);
 
             //if the mouse is hovering over any of the buttons change the color of that button
+            //high scores button
+            if (mouseOverScores == true) {
+                //change button color
+                g.setColor(Color.green);
+            }
+            if (mouseOverScores == false) {
+                //white by defult if the mouse is not ever it
+                g.setColor(Color.white);
+            }
+            //draw the scores button
+            g.fillRect(scoresButton.x, scoresButton.y, scoresButton.width, scoresButton.height);
             //start button
             if (mouseOverStart == true) {
                 //change button color
@@ -318,6 +398,7 @@ public class Test extends JComponent {
             g.drawString("Start", 270, 465);
             g.drawString("Info", 370, 465);
             g.drawString("Quit", 470, 465);
+            g.drawString("High Scores", 345, 515);
         }
         //if they hit the info screen
         if (info == true) {
@@ -449,7 +530,7 @@ public class Test extends JComponent {
             g.drawString("" + Score, 30, 50);
 
             //drawing the hero
-            //if mashing all the magic keys
+            //if mashing all the WASD keys
             if (!(wPressed == false && sPressed == false && aPressed == false && dPressed == false)) {
                 g.drawImage(WFR, hero.x, hero.y, 20, 30, null);
             }
@@ -513,28 +594,35 @@ public class Test extends JComponent {
 
             }
 
-            //if a key was pressed to fire an magic
-            //horozontal shot
-            if (leftPressed == true) {
-                //red magic
-                g.setColor(Color.red);
-                g.fillRect(magic.x, magic.y, 15, 5);
+            //if a key was pressed to fire magic
+            //of no two keys were pressed at the same time
+            if (!((leftPressed == true && upPressed == true) || (rightPressed == true && upPressed == true) || (leftPressed == true && downPressed == true) || (rightPressed == true && downPressed == true))) {
+                //horozontal shot
+                if (leftPressed == true || rightPressed == true) {
+                    //red magic
+                    g.setColor(Color.red);
+                    g.fillRect(magic.x, magic.y, 25, 5);
+                }
+                //vertical shot
+                if (upPressed == true || downPressed == true) {
+                    //red magic
+                    g.setColor(Color.red);
+                    g.fillRect(magic.x, magic.y, 5, 25);
+                }
             }
-            if (rightPressed == true) {
+
+            //if two-diagonal keys are pressed at a time
+            if ((leftPressed == true && upPressed == true) || (rightPressed == true && upPressed == true)) {
                 //red magic
                 g.setColor(Color.red);
-                g.fillRect(magic.x, magic.y, 15, 5);
+                g.fillRect(magic.x, magic.y, 25, 5);
+
             }
-            //vertical shot
-            if (upPressed == true) {
+            if ((leftPressed == true && downPressed == true) || (rightPressed == true && downPressed == true)) {
                 //red magic
                 g.setColor(Color.red);
-                g.fillRect(magic.x, magic.y, 5, 15);
-            }
-            if (downPressed == true) {
-                //red magic
-                g.setColor(Color.red);
-                g.fillRect(magic.x, magic.y, 5, 15);
+                g.fillRect(magic.x, magic.y, 25, 5);
+
             }
 
             // GAME DRAWING ENDS HERE
@@ -583,6 +671,29 @@ public class Test extends JComponent {
             rectMouse.x = mouseX;
             rectMouse.y = mouseY;
 
+            //if they hit the scores button
+            if (scoreScreen == true) {
+                //if the mouse is over the main menu button
+                if (rectMouse.intersects(mainMenu3)) {
+                    //set mouse over main menu button 3 to true
+                    mouseOverMain3 = true;
+                    //if they click the button
+                    if (lclick == true) {
+                        //stet score screen to false again
+                        scoreScreen = false;
+                        //set start to zero to go back to main menu
+                        start = 0;
+                    }
+                }
+                //if the mouse is not over the main menu button
+                if (!(rectMouse.intersects(mainMenu3))) {
+                    //set the mouse over main 3boolean to false
+                    mouseOverMain3 = false;
+                }
+                // update the drawing (calls paintComponent)
+                repaint();
+            }
+
             //if they died(from falling or from lack of life)
             if (death == true || falldeath == true) {
                 //save the high score to the thing
@@ -612,6 +723,12 @@ public class Test extends JComponent {
                         hero.y = 20;
                         //remove all the monsters from the array list
                         mobs.clear();
+                        //reset the music
+                        //kill the theme music
+                        gameOverMusic.stop();
+                        //set the main music to repeat
+                        music.setRepeat(true);
+                        music.play();
                         //reset the death and falldeath booleans to restart game
                         death = false;
                         falldeath = false;
@@ -655,6 +772,24 @@ public class Test extends JComponent {
             //if the game is not started yet
             if (start == 0) {
                 //when the mouse hovers over the buttons make the button change color
+                //if the mouse is over the scores button
+                if (rectMouse.intersects(scoresButton)) {
+                    //set the mouseoverscores boolean to true
+                    mouseOverScores = true;
+                    //if they push the button
+                    if (lclick == true) {
+                        //set the start int to 4
+                        start = 4;
+                        //set the scores screen boolean to true
+                        scoreScreen = true;
+                    }
+                }
+                //if the mouse is not over the scores button
+                if (!(rectMouse.intersects(scoresButton))) {
+                    //set the mouse over scores boolean to false
+                    mouseOverScores = false;
+                }
+
                 //if the mouse is over the start button
                 if (rectMouse.intersects(startButton)) {
                     //set the mouse over start boolean to true to make the button color change
@@ -801,8 +936,15 @@ public class Test extends JComponent {
                 }
                 //if they reach 0 lives
                 if (hearts == 0) {
+                    //kill the theme music
+                    music.stop();
+                    //set the game over screen music to repeat
+                    gameOverMusic.setRepeat(true);
+                    gameOverMusic.play();
                     //set death to true
                     death = true;
+                    //clear the high score list
+                    highScores.clear();
                     //set setscore to true
                     setScore = true;
                     //set start to 3
@@ -1018,18 +1160,44 @@ public class Test extends JComponent {
 
     //method for doing scores-adding to high score page (needs the end score)
     public void scoreKeeper(int endScore) {
+        //adding the score to the sheet
+        //add the final score for that game to the text doc, only if it is greater than zero-this also helps declutter the scorekeeper doc
+        if (endScore > 0) {
+            try {
+                //new filewritter and bufferedwriter to append the scores txt
+                FileWriter writer = new FileWriter("HighScores.txt", true);
+                BufferedWriter bufferedWriter = new BufferedWriter(writer);
+                bufferedWriter.write("" + endScore);
+                bufferedWriter.newLine();
+                bufferedWriter.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        //sorting the high scores from highest to lowest
         try {
-            //new filewritter and bufferedwriter to append the scores txt
-            FileWriter writer = new FileWriter("trial.txt");
-            BufferedWriter bufferedWriter = new BufferedWriter(writer);
-            //add the final score for that game to the text doc
-            bufferedWriter.write("boo");
-            bufferedWriter.newLine();
-            bufferedWriter.close();
+            //reference the High Score txt file
+            File scoreboard = new File("HighScores.txt");
+            //create scanner to read file
+            Scanner scanScore = new Scanner(scoreboard);
+            //while there is a next line
+            while (scanScore.hasNextLine()) {
+                //scan in the line and save it as a string
+                String line = scanScore.nextLine();
+                //convert to integer
+                int lineScore = Integer.parseInt(line);
+                //add the string on the line to the arrya list of scores
+                highScores.add(lineScore);
+            }
+            //sort the scores (lowest to highest)
+            Collections.sort(highScores);
+            //make the score order highest to lowest
+            Collections.reverse(highScores);
+            //catch exeption
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         //set to false so it does not call this method over and over agian
         setScore = false;
     }
@@ -1102,10 +1270,17 @@ public class Test extends JComponent {
         }
         //when the hero falls in the hole
         if (hero.intersects(hole)) {
+            //kill the theme music
+            music.stop();
+            //set the game over screen music to repeat
+            gameOverMusic.setRepeat(true);
+            gameOverMusic.play();
             //set falldeath boolean to true
             falldeath = true;
             //set setscore to true
             setScore = true;
+            //clear the high score list
+            highScores.clear();
             //set start to 3
             start = 3;
         }
@@ -1118,6 +1293,8 @@ public class Test extends JComponent {
         //when the magic hits the monsters
         for (int i = 0; i < mobs.size(); i++) {
             if (magic.intersects(mobs.get(i).maPos)) {
+                //play the firebolt sound effect
+                effects.play();
                 //return magic to hero
                 magic.x = hero.x;
                 magic.y = hero.y;
